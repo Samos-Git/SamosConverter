@@ -367,6 +367,13 @@
       line-height: 1;
       transition: color 0.15s;
     }
+    .achat-label-text {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 1px;
+    }
     .achat-delete:active { color: var(--danger); }
 
     .empty-list {
@@ -631,6 +638,14 @@
     </div>
   </div>
 
+  <!-- Label input for purchase -->
+  <div style="position:relative;">
+    <input type="text" id="label-input" placeholder="Libellé (ex: restaurant, taxi…)" maxlength="40"
+      style="width:100%; background:var(--surface); border:1.5px solid var(--border); border-radius:14px;
+             color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; padding:11px 16px;
+             outline:none; transition:border-color 0.2s, box-shadow 0.2s; box-sizing:border-box;">
+  </div>
+
   <!-- Result box -->
   <div class="result-box">
     <div class="result-label">Conversion</div>
@@ -746,6 +761,7 @@ const toSel   = document.getElementById('to-currency');
 const swapBtn = document.getElementById('swap-btn');
 const amountInput = document.getElementById('amount-input');
 const fromLabel = document.getElementById('from-label');
+const labelInput = document.getElementById('label-input');
 const resultValue = document.getElementById('result-value');
 const resultCurrency = document.getElementById('result-currency');
 const resultRate = document.getElementById('result-rate');
@@ -934,18 +950,19 @@ function doAdd() {
   if (isNaN(amount) || amount === 0) { showToast('Entrez un montant'); return; }
 
   const from = fromSel.value;
-  // Convert to EUR
   const rateToEUR = getRate(from, 'EUR');
   if (!rateToEUR) { showToast('Taux indisponible'); return; }
 
   const euroAmount = amount * rateToEUR;
   const id = ++itemCounter;
+  const label = labelInput.value.trim();
 
-  achats.push({ id, original: amount, currency: from, euros: euroAmount });
+  achats.push({ id, original: amount, currency: from, euros: euroAmount, label });
   achatsTotal += euroAmount;
 
   renderAchats();
   amountInput.value = '';
+  labelInput.value = '';
   showToast(`+${formatAmount(euroAmount, 'EUR')} € ajouté`);
 }
 
@@ -960,11 +977,15 @@ function renderAchats() {
     const li = document.createElement('li');
     li.className = 'achat-item';
     li.dataset.id = item.id;
+    const labelHtml = item.label
+      ? `<div class="achat-label-text">${item.label}</div>`
+      : '';
     const fromCur = item.currency === 'EUR'
       ? ''
       : `<span class="achat-origin">${formatAmount(item.original, item.currency)} ${item.currency}</span>`;
     li.innerHTML = `
       <div>
+        ${labelHtml}
         <div class="achat-amount">${formatAmount(item.euros, 'EUR')} €</div>
         ${fromCur}
       </div>
@@ -1129,6 +1150,16 @@ clearListBtn.addEventListener('click', () => {
   showToast('Liste vidée');
 });
 
+// Label input focus style
+labelInput.addEventListener('focus', () => {
+  labelInput.style.borderColor = 'var(--accent)';
+  labelInput.style.boxShadow = '0 0 0 3px rgba(58,111,216,0.15)';
+});
+labelInput.addEventListener('blur', () => {
+  labelInput.style.borderColor = '';
+  labelInput.style.boxShadow = '';
+});
+
 // Allow Enter key to convert
 amountInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') doConvert();
@@ -1146,6 +1177,7 @@ btnExport.addEventListener('click', () => {
     total_eur: achatsTotal,
     achats: achats.map(a => ({
       id: a.id,
+      libelle: a.label || '',
       montant_original: a.original,
       devise: a.currency,
       montant_eur: a.euros,
@@ -1178,6 +1210,7 @@ importFile.addEventListener('change', e => {
         const id = ++itemCounter;
         achats.push({
           id,
+          label: a.libelle || '',
           original: a.montant_original ?? a.montant_eur,
           currency: a.devise ?? 'EUR',
           euros: a.montant_eur,
