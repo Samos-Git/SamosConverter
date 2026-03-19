@@ -368,11 +368,21 @@
       transition: color 0.15s;
     }
     .achat-label-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 1px;
+    }
+    .achat-label-text span:first-child {
       font-family: 'DM Sans', sans-serif;
       font-size: 12px;
       font-weight: 500;
       color: var(--accent);
-      margin-bottom: 1px;
+    }
+    .achat-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
     }
     .achat-delete:active { color: var(--danger); }
 
@@ -957,7 +967,7 @@ function doAdd() {
   const id = ++itemCounter;
   const label = labelInput.value.trim();
 
-  achats.push({ id, original: amount, currency: from, euros: euroAmount, label });
+  achats.push({ id, original: amount, currency: from, euros: euroAmount, label, date: new Date().toISOString() });
   achatsTotal += euroAmount;
 
   saveAchats();
@@ -978,8 +988,11 @@ function renderAchats() {
     const li = document.createElement('li');
     li.className = 'achat-item';
     li.dataset.id = item.id;
-    const labelHtml = item.label
-      ? `<div class="achat-label-text">${item.label}</div>`
+    const labelHtml = item.label || item.date
+      ? `<div class="achat-label-text">
+           ${item.label ? `<span>${item.label}</span>` : ''}
+           ${item.date ? `<span class="achat-date">${new Date(item.date).toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>` : ''}
+         </div>`
       : '';
     const fromCur = item.currency === 'EUR'
       ? ''
@@ -1203,6 +1216,7 @@ btnExport.addEventListener('click', () => {
     achats: achats.map(a => ({
       id: a.id,
       libelle: a.label || '',
+      date: a.date || '',
       montant_original: a.original,
       devise: a.currency,
       montant_eur: a.euros,
@@ -1236,6 +1250,7 @@ importFile.addEventListener('change', e => {
         achats.push({
           id,
           label: a.libelle || '',
+          date: a.date || new Date().toISOString(),
           original: a.montant_original ?? a.montant_eur,
           currency: a.devise ?? 'EUR',
           euros: a.montant_eur,
