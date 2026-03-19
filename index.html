@@ -777,8 +777,30 @@ function updateFromLabel() {
   fromLabel.textContent = fromSel.value;
 }
 
+// ─── CACHE LOCAL ───────────────────────────────────────────────────────────────
+const CACHE_KEY = 'samos_rates';
+const CACHE_DATE_KEY = 'samos_rates_date';
+
+function saveRatesToCache() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(rates));
+    localStorage.setItem(CACHE_DATE_KEY, lastUpdated ? lastUpdated.toISOString() : new Date().toISOString());
+  } catch(e) { /* storage indisponible */ }
+}
+
+function loadRatesFromCache() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    const cachedDate = localStorage.getItem(CACHE_DATE_KEY);
+    if (!cached) return false;
+    rates = JSON.parse(cached);
+    ratesLoaded = true;
+    lastUpdated = cachedDate ? new Date(cachedDate) : null;
+    return true;
+  } catch(e) { return false; }
+}
+
 // ─── FETCH RATES ───────────────────────────────────────────────────────────────
-// 3 sources avec fallback automatique, toutes CORS-compatibles avec GitHub Pages
 async function fetchRates() {
 
   // SOURCE 1 : currency-api.pages.dev (Cloudflare, gratuit, sans clé, sans limite)
@@ -786,19 +808,19 @@ async function fetchRates() {
     const res = await fetch('https://latest.currency-api.pages.dev/v1/currencies/eur.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    // data.eur = { usd: 1.08, gbp: 0.86, ... } — clés en minuscules
     const raw = data.eur;
     rates = {};
     Object.keys(raw).forEach(k => { rates[k.toUpperCase()] = raw[k]; });
     rates['EUR'] = 1;
     ratesLoaded = true;
     lastUpdated = new Date(data.date);
+    saveRatesToCache();
     rateStatus.textContent = `Taux en ligne · ${lastUpdated.toLocaleDateString('fr-FR')}`;
     updateRateBadge();
     return;
   } catch(e1) { /* essai suivant */ }
 
-  // SOURCE 2 : cdn.jsdelivr.net mirror du même projet (fallback recommandé par l'auteur)
+  // SOURCE 2 : cdn.jsdelivr.net mirror
   try {
     const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -809,12 +831,13 @@ async function fetchRates() {
     rates['EUR'] = 1;
     ratesLoaded = true;
     lastUpdated = new Date(data.date);
+    saveRatesToCache();
     rateStatus.textContent = `Taux en ligne · ${lastUpdated.toLocaleDateString('fr-FR')}`;
     updateRateBadge();
     return;
   } catch(e2) { /* essai suivant */ }
 
-  // SOURCE 3 : frankfurter.app (BCE, CORS ouvert, mis à jour chaque jour ouvré)
+  // SOURCE 3 : frankfurter.app (BCE)
   try {
     const res = await fetch('https://api.frankfurter.app/latest?from=EUR');
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -822,13 +845,22 @@ async function fetchRates() {
     rates = { EUR: 1, ...data.rates };
     ratesLoaded = true;
     lastUpdated = new Date(data.date);
+    saveRatesToCache();
     rateStatus.textContent = `Taux BCE · ${lastUpdated.toLocaleDateString('fr-FR')}`;
     updateRateBadge();
     return;
   } catch(e3) { /* toutes sources échouées */ }
 
-  // FALLBACK STATIQUE (hors ligne)
-  rateStatus.textContent = '⚠ Hors ligne — taux approximatifs';
+  // CACHE LOCAL (taux de la dernière session avec réseau)
+  if (loadRatesFromCache()) {
+    const dateStr = lastUpdated ? lastUpdated.toLocaleDateString('fr-FR') : '?';
+    rateStatus.textContent = `📦 Cache du ${dateStr} — hors ligne`;
+    updateRateBadge();
+    return;
+  }
+
+  // FALLBACK STATIQUE (aucun cache, jamais eu de réseau)
+  rateStatus.textContent = '⚠ Hors ligne — taux indicatifs';
   rates = { EUR:1, USD:1.08, GBP:0.86, JPY:162, CHF:0.97, CAD:1.47, AUD:1.65,
     CNY:7.82, INR:89.7, BRL:5.4, MXN:18.3, KRW:1440, SGD:1.45, HKD:8.44,
     NOK:11.5, SEK:11.2, DKK:7.46, PLN:4.28, CZK:25.2, HUF:392, RON:4.97,
@@ -837,6 +869,8 @@ async function fetchRates() {
     XOF:655.96, XAF:655.96, THB:38.5, IDR:17000, MYR:5.05, PHP:62,
     VND:27000, PKR:300, BDT:118, NZD:1.78, ILS:4.1, CLP:1020, COP:4500,
     ARS:1050, PEN:4.1 };
+  ratesLoaded = true;
+  updateRateBadge();
 }
 
 // ─── CONVERT ───────────────────────────────────────────────────────────────────
