@@ -353,8 +353,14 @@
     }
     .achat-origin {
       font-family: 'DM Mono', monospace;
-      font-size: 10px;
+      font-size: 11px;
       color: var(--text-muted);
+      margin-left: 5px;
+    }
+    .achat-origin::before {
+      content: '·';
+      margin-right: 5px;
+      color: var(--border);
     }
     .achat-delete {
       background: none;
@@ -994,14 +1000,13 @@ function renderAchats() {
            ${item.date ? `<span class="achat-date">${new Date(item.date).toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>` : ''}
          </div>`
       : '';
-    const fromCur = item.currency === 'EUR'
-      ? ''
-      : `<span class="achat-origin">${formatAmount(item.original, item.currency)} ${item.currency}</span>`;
+    const originStr = item.currency !== 'EUR'
+      ? ` <span class="achat-origin">${formatAmount(item.original, item.currency)} ${item.currency}</span>`
+      : '';
     li.innerHTML = `
       <div>
         ${labelHtml}
-        <div class="achat-amount">${formatAmount(item.euros, 'EUR')} €</div>
-        ${fromCur}
+        <div class="achat-amount">${formatAmount(item.euros, 'EUR')} €${originStr}</div>
       </div>
       <button class="achat-delete" onclick="deleteItem(${item.id})">✕</button>
     `;
