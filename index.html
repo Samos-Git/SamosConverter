@@ -960,6 +960,7 @@ function doAdd() {
   achats.push({ id, original: amount, currency: from, euros: euroAmount, label });
   achatsTotal += euroAmount;
 
+  saveAchats();
   renderAchats();
   amountInput.value = '';
   labelInput.value = '';
@@ -1002,13 +1003,37 @@ function deleteItem(id) {
   achatsTotal -= achats[idx].euros;
   if (achatsTotal < 0) achatsTotal = 0;
   achats.splice(idx, 1);
+  saveAchats();
   renderAchats();
 }
 
 function clearList() {
   achats = [];
   achatsTotal = 0;
+  saveAchats();
   renderAchats();
+}
+
+// ─── PERSISTANCE ACHATS ────────────────────────────────────────────────────────
+const ACHATS_KEY = 'samos_achats';
+
+function saveAchats() {
+  try {
+    localStorage.setItem(ACHATS_KEY, JSON.stringify({ achats, itemCounter }));
+  } catch(e) { /* storage plein ou indisponible */ }
+}
+
+function loadAchats() {
+  try {
+    const raw = localStorage.getItem(ACHATS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (Array.isArray(data.achats)) {
+      achats = data.achats;
+      itemCounter = data.itemCounter ?? achats.length;
+      achatsTotal = achats.reduce((sum, a) => sum + a.euros, 0);
+    }
+  } catch(e) { /* données corrompues, on repart de zéro */ }
 }
 
 // ─── UTILS ─────────────────────────────────────────────────────────────────────
@@ -1218,6 +1243,7 @@ importFile.addEventListener('change', e => {
         achatsTotal += a.montant_eur;
       });
       renderAchats();
+      saveAchats();
       showToast(`${data.achats.length} achat(s) importé(s) ✓`);
     } catch {
       showToast('Fichier JSON invalide');
@@ -1230,6 +1256,7 @@ importFile.addEventListener('change', e => {
 // ─── INIT ──────────────────────────────────────────────────────────────────────
 async function init() {
   populateSelects();
+  loadAchats();
   loading.classList.add('show');
   await fetchRates();
   loading.classList.remove('show');
