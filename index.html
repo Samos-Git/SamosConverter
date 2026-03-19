@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Samos Converter</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&family=Playfair+Display:wght@700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f0f4fb;
@@ -180,22 +180,23 @@
     /* Arc sectors — clickable */
     .arc-sector {
       cursor: pointer;
-      transition: opacity 0.15s, filter 0.15s;
+      transition: transform 0.12s ease, filter 0.12s ease;
       outline: none;
+      transform-origin: 140px 140px;
     }
-    .arc-sector:hover { opacity: 0.88; }
-    .arc-sector:active { opacity: 0.7; filter: brightness(0.92); }
+    .arc-sector:hover { filter: brightness(1.08); }
 
     /* Labels on arcs */
     .arc-label {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       pointer-events: none;
       dominant-baseline: middle;
       text-anchor: middle;
+      fill: #1a2340 !important;
     }
 
     /* CENTER input */
@@ -511,61 +512,116 @@
   <div class="donut-wrap">
     <svg class="donut-svg" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <filter id="shadow-top" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="rgba(58,111,216,0.4)"/>
+
+        <!-- ═══ BEVEL / RELIEF FILTERS ═══ -->
+
+        <!-- TOP (bleu) — lumière venant du haut -->
+        <filter id="bevel-top" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur"/>
+          <feSpecularLighting in="blur" surfaceScale="5" specularConstant="1.2" specularExponent="18" result="spec" lighting-color="rgba(255,255,255,0.9)">
+            <fePointLight x="140" y="20" z="120"/>
+          </feSpecularLighting>
+          <feComposite in="spec" in2="SourceAlpha" operator="in" result="specClipped"/>
+          <feBlend in="SourceGraphic" in2="specClipped" mode="screen" result="lit"/>
+          <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="rgba(30,60,120,0.4)" in="lit" result="shadowed"/>
+          <feDropShadow dx="0" dy="-2" stdDeviation="2" flood-color="rgba(255,255,255,0.5)"/>
         </filter>
-        <filter id="shadow-bottom" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(42,184,122,0.35)"/>
+
+        <!-- RIGHT (jaune) — lumière venant de droite -->
+        <filter id="bevel-right" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur"/>
+          <feSpecularLighting in="blur" surfaceScale="5" specularConstant="1.1" specularExponent="16" result="spec" lighting-color="rgba(255,255,255,0.8)">
+            <fePointLight x="260" y="140" z="110"/>
+          </feSpecularLighting>
+          <feComposite in="spec" in2="SourceAlpha" operator="in" result="specClipped"/>
+          <feBlend in="SourceGraphic" in2="specClipped" mode="screen" result="lit"/>
+          <feDropShadow dx="-3" dy="3" stdDeviation="4" flood-color="rgba(140,100,0,0.35)"/>
         </filter>
-        <filter id="shadow-left" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="-2" dy="0" stdDeviation="5" flood-color="rgba(224,85,85,0.3)"/>
+
+        <!-- BOTTOM (vert) — lumière venant du bas -->
+        <filter id="bevel-bottom" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur"/>
+          <feSpecularLighting in="blur" surfaceScale="5" specularConstant="1.1" specularExponent="16" result="spec" lighting-color="rgba(255,255,255,0.8)">
+            <fePointLight x="140" y="260" z="110"/>
+          </feSpecularLighting>
+          <feComposite in="spec" in2="SourceAlpha" operator="in" result="specClipped"/>
+          <feBlend in="SourceGraphic" in2="specClipped" mode="screen" result="lit"/>
+          <feDropShadow dx="0" dy="-4" stdDeviation="4" flood-color="rgba(10,70,40,0.35)"/>
         </filter>
-        <filter id="shadow-right" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="2" dy="0" stdDeviation="5" flood-color="rgba(90,110,160,0.25)"/>
+
+        <!-- LEFT (rouge) — lumière venant de gauche -->
+        <filter id="bevel-left" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur"/>
+          <feSpecularLighting in="blur" surfaceScale="5" specularConstant="1.1" specularExponent="16" result="spec" lighting-color="rgba(255,255,255,0.8)">
+            <fePointLight x="20" y="140" z="110"/>
+          </feSpecularLighting>
+          <feComposite in="spec" in2="SourceAlpha" operator="in" result="specClipped"/>
+          <feBlend in="SourceGraphic" in2="specClipped" mode="screen" result="lit"/>
+          <feDropShadow dx="3" dy="3" stdDeviation="4" flood-color="rgba(100,20,20,0.35)"/>
         </filter>
-        <!-- Track circle -->
-        <clipPath id="donut-clip">
-          <path d="
-            M 140 20 A 120 120 0 1 1 139.999 20 Z
-            M 140 80 A 60 60 0 1 0 140.001 80 Z
-          " fill-rule="evenodd"/>
-        </clipPath>
+
+        <!-- Inner hole shadow -->
+        <filter id="inner-shadow" x="-15%" y="-15%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="rgba(58,111,216,0.14)"/>
+        </filter>
+
+        <!-- ═══ GRADIENTS — SIMON ADOUCI ═══ -->
+
+        <!-- TOP: bleu Simon doux -->
+        <linearGradient id="grad-top" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%"   stop-color="#90b8f0"/>
+          <stop offset="40%"  stop-color="#6094d8"/>
+          <stop offset="100%" stop-color="#3d6db2"/>
+        </linearGradient>
+
+        <!-- RIGHT: jaune Simon doux -->
+        <linearGradient id="grad-right" x1="100%" y1="50%" x2="0%" y2="50%">
+          <stop offset="0%"   stop-color="#f5dc80"/>
+          <stop offset="40%"  stop-color="#e8c840"/>
+          <stop offset="100%" stop-color="#c8a010"/>
+        </linearGradient>
+
+        <!-- BOTTOM: vert Simon doux -->
+        <linearGradient id="grad-bottom" x1="50%" y1="100%" x2="50%" y2="0%">
+          <stop offset="0%"   stop-color="#80d8a0"/>
+          <stop offset="40%"  stop-color="#48b870"/>
+          <stop offset="100%" stop-color="#288a4c"/>
+        </linearGradient>
+
+        <!-- LEFT: rouge Simon doux -->
+        <linearGradient id="grad-left" x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="0%"   stop-color="#f09090"/>
+          <stop offset="40%"  stop-color="#d85858"/>
+          <stop offset="100%" stop-color="#aa3030"/>
+        </linearGradient>
+
+        <!-- Track ring background gradient -->
+        <radialGradient id="grad-track" cx="50%" cy="40%" r="60%">
+          <stop offset="0%"   stop-color="#e0e8f4"/>
+          <stop offset="100%" stop-color="#c8d4e8"/>
+        </radialGradient>
+
       </defs>
 
-      <!-- Background track ring -->
-      <circle cx="140" cy="140" r="120" fill="none" stroke="#e2eaf5" stroke-width="58"/>
-      <circle cx="140" cy="140" r="120" fill="none" stroke="#f0f4fb" stroke-width="2"/>
-      <circle cx="140" cy="140" r="91" fill="none" stroke="#f0f4fb" stroke-width="2"/>
-
-      <defs>
-        <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#5b8aee"/>
-          <stop offset="100%" stop-color="#3a6fd8"/>
-        </linearGradient>
-        <linearGradient id="grad-bottom" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#22c97a"/>
-          <stop offset="100%" stop-color="#2ab87a"/>
-        </linearGradient>
-        <linearGradient id="grad-left" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#e86060"/>
-          <stop offset="100%" stop-color="#e05555"/>
-        </linearGradient>
-        <linearGradient id="grad-right" x1="100%" y1="0%" x2="0%" y2="0%">
-          <stop offset="0%" stop-color="#8aa4d8"/>
-          <stop offset="100%" stop-color="#6b8ec8"/>
-        </linearGradient>
-      </defs>
+      <!-- Background track ring with depth -->
+      <circle cx="140" cy="140" r="120" fill="none" stroke="url(#grad-track)" stroke-width="60"/>
+      <!-- Outer rim highlight top -->
+      <circle cx="140" cy="140" r="150" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
+      <!-- Inner rim shadow -->
+      <circle cx="140" cy="140" r="81" fill="none" stroke="rgba(80,110,190,0.18)" stroke-width="2"/>
 
       <!-- All 4 arcs drawn precisely by JS below -->
       <g id="arcs-group"></g>
 
-      <!-- Inner white circle (hole) -->
-      <circle cx="140" cy="140" r="80" fill="white" filter="url(#inner-shadow)"/>
+      <!-- Inner white circle (hole) with rim -->
+      <circle cx="140" cy="140" r="80" fill="white"/>
+      <circle cx="140" cy="140" r="80" fill="none" stroke="rgba(100,140,220,0.15)" stroke-width="1.5"/>
       <defs>
         <filter id="inner-shadow">
-          <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="rgba(58,111,216,0.12)"/>
+          <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="rgba(40,80,180,0.18)"/>
         </filter>
       </defs>
+      <circle cx="140" cy="140" r="80" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1" filter="url(#inner-shadow)"/>
     </svg>
 
     <!-- Center input -->
@@ -944,10 +1000,10 @@ function showToast(msg) {
   // Each sector is centered on a cardinal point, spanning 90° - 2*gap
   // In our polar system: 0° = top, 90° = right, 180° = bottom, 270° = left
   const sectors = [
-    { start: 315 + gap, end:  45 - gap, fill: 'url(#grad-top)',    label: 'CONVERTIR', filter: 'url(#shadow-top)',    action: 'convert' },
-    { start:  45 + gap, end: 135 - gap, fill: 'url(#grad-right)',  label: '⌫',          filter: 'url(#shadow-right)', action: 'back'    },
-    { start: 135 + gap, end: 225 - gap, fill: 'url(#grad-bottom)', label: 'Ajouter',   filter: 'url(#shadow-bottom)',action: 'add'     },
-    { start: 225 + gap, end: 315 - gap, fill: 'url(#grad-left)',   label: 'C',          filter: 'url(#shadow-left)',  action: 'clear'   },
+    { start: 315 + gap, end:  45 - gap, fill: 'url(#grad-top)',    label: 'CONVERTIR', filter: 'url(#bevel-top)',    action: 'convert' },
+    { start:  45 + gap, end: 135 - gap, fill: 'url(#grad-right)',  label: '⌫',          filter: 'url(#bevel-right)', action: 'back'    },
+    { start: 135 + gap, end: 225 - gap, fill: 'url(#grad-bottom)', label: 'Ajouter',   filter: 'url(#bevel-bottom)',action: 'add'     },
+    { start: 225 + gap, end: 315 - gap, fill: 'url(#grad-left)',   label: 'C',          filter: 'url(#bevel-left)',  action: 'clear'   },
   ];
 
   sectors.forEach(s => {
@@ -961,27 +1017,17 @@ function showToast(msg) {
     path.setAttribute('fill', s.fill);
     g.appendChild(path);
 
-    // Label: place at midpoint radius, midpoint angle — NO rotation
-    const mid = midAngle(s.start, s.end);
-    const rMid = (ro + ri) / 2;
-    const lp = polar(mid, rMid);
-
-    const text = document.createElementNS(svgNS, 'text');
-    text.setAttribute('x', lp[0]);
-    text.setAttribute('y', lp[1]);
-    text.setAttribute('class', 'arc-label');
-    text.setAttribute('fill', '#fff');
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('dominant-baseline', 'central');
-    // No transform/rotation — always horizontal and centered
-    text.textContent = s.label;
-    g.appendChild(text);
-
-    // Events
+    // Events — tactile press effect
     const handler = () => {
-      // ripple
-      path.style.opacity = '0.7';
-      setTimeout(() => path.style.opacity = '', 180);
+      // Simulate button being pressed in: scale toward center
+      g.style.transition = 'transform 0.08s ease, filter 0.08s ease';
+      g.style.transform = 'scale(0.96)';
+      g.style.transformOrigin = '140px 140px';
+      g.style.filter = 'brightness(0.88)';
+      setTimeout(() => {
+        g.style.transform = 'scale(1)';
+        g.style.filter = '';
+      }, 140);
       if (s.action === 'convert') doConvert();
       else if (s.action === 'add')   doAdd();
       else if (s.action === 'clear') {
@@ -998,6 +1044,34 @@ function showToast(msg) {
     g.addEventListener('touchend', e => { e.preventDefault(); handler(); });
     group.appendChild(g);
   });
+
+  // ── Labels drawn SEPARATELY, above everything, no filter ──
+  const labelsGroup = document.createElementNS(svgNS, 'g');
+  labelsGroup.setAttribute('id', 'labels-group');
+  labelsGroup.style.pointerEvents = 'none';
+
+  sectors.forEach(s => {
+    const mid = midAngle(s.start, s.end);
+    const rMid = (ro + ri) / 2;
+    const lp = polar(mid, rMid);
+
+    const text = document.createElementNS(svgNS, 'text');
+    text.setAttribute('x', lp[0]);
+    text.setAttribute('y', lp[1]);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'central');
+    text.setAttribute('fill', '#1a2340');
+    text.setAttribute('font-family', 'Inter, sans-serif');
+    text.setAttribute('font-size', '11');
+    text.setAttribute('font-weight', '700');
+    text.setAttribute('letter-spacing', '0.5');
+    text.textContent = s.label;
+    labelsGroup.appendChild(text);
+  });
+
+  // Insert after arcs-group but before inner white circle
+  const arcsGroup = document.getElementById('arcs-group');
+  arcsGroup.parentNode.insertBefore(labelsGroup, arcsGroup.nextSibling);
 })();
 
 // ─── EVENTS ────────────────────────────────────────────────────────────────────
